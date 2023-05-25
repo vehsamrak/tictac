@@ -1,6 +1,11 @@
 package main
 
-import "github.com/vehsamrak/tictac/internal/client"
+import (
+	"math/rand"
+	"time"
+
+	"github.com/vehsamrak/tictac/internal/client"
+)
 
 const (
 	height = 15
@@ -8,6 +13,7 @@ const (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	client.NewClient().Run(
 		height,
 		width,

@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 type cell struct {
@@ -23,22 +25,23 @@ func (m *model) nextTurn() {
 	} else {
 		m.currentPlayerId++
 	}
+
+	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerId].mark)
 }
 
 type model struct {
 	debugMessage    string // string with any message to render in debug mode
+	message         string
 	board           [][]cell
 	players         []Player
 	debug           bool
 	currentPlayerId int // id is players index
 	cursorX         int
 	cursorY         int
-	message         string
 }
 
 func NewModel(height, width int) model {
 	board := make([][]cell, height)
-
 	for y := 0; y < height; y++ {
 		board[y] = make([]cell, width)
 		for x := 0; x < width; x++ {
@@ -49,9 +52,29 @@ func NewModel(height, width int) model {
 		}
 	}
 
-	players := []Player{
-		{mark: "X"},
-		{mark: "O"},
+	marks := []string{"X", "O"}
+	var usedColors []colorful.Color
+	var players []Player
+	for _, mark := range marks {
+		// selecting different colors for each player
+		color := colorful.HappyColor()
+		for _, usedColor := range usedColors {
+			for {
+				color = colorful.HappyColor()
+				if color.DistanceLab(usedColor) >= 1 {
+					break
+				}
+			}
+		}
+
+		usedColors = append(usedColors, color)
+
+		players = append(players, Player{
+			// mark: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(colors[i].Hex())).Render(mark),
+			mark: lipgloss.NewStyle().Bold(true).Foreground(
+				lipgloss.Color(color.Hex()),
+			).Render(mark),
+		})
 	}
 
 	currentPlayerId := 0
@@ -62,7 +85,10 @@ func NewModel(height, width int) model {
 		cursorY:         height / 2,
 		players:         players,
 		currentPlayerId: currentPlayerId,
-		message:         fmt.Sprintf("New game started! Current turn: %s", players[currentPlayerId].mark),
+		message: fmt.Sprintf(
+			"New game started! Goal is to occupy 5 in a row. Current turn: %s",
+			players[currentPlayerId].mark,
+		),
 	}
 }
 
@@ -98,7 +124,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.debug = true
 			}
-		case "enter":
+		case "enter", " ":
 			cell := &m.board[m.cursorY][m.cursorX]
 
 			if cell.mark == "" {
