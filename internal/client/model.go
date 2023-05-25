@@ -1,7 +1,7 @@
 package client
 
 import (
-	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -44,34 +44,36 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	result := "\n\n"
+	var result strings.Builder
+
+	result.WriteString("\n\n")
 
 	for _, row := range m.board {
 		for i := range row {
-			result += fmt.Sprintf("┼───")
+			result.WriteString("┼───")
 			if len(row)-1 == i {
-				result += fmt.Sprintf("┼")
+				result.WriteString("┼")
 			}
 		}
-		result += fmt.Sprintf("\n")
+		result.WriteString("\n")
 
 		for i := range row {
-			result += fmt.Sprintf("│   ")
+			result.WriteString("│   ")
 			if len(row)-1 == i {
-				result += fmt.Sprintf("│")
+				result.WriteString("│")
 			}
 		}
-		result += fmt.Sprintf("\n")
+		result.WriteString("\n")
 	}
 
 	for i := range m.board[0] {
-		result += fmt.Sprintf("┼───")
+		result.WriteString("┼───")
 		if len(m.board[0])-1 == i {
-			result += fmt.Sprintf("┼")
+			result.WriteString("┼")
 		}
 	}
 
-	result += "\n\nPress \"q\" to quit.\n\n"
+	result.WriteString("\n\nPress \"q\" to quit.\n\n")
 
-	return result
+	return result.String()
 }

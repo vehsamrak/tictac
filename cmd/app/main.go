@@ -3,8 +3,8 @@ package main
 import "github.com/vehsamrak/tictac/internal/client"
 
 const (
-	height = 10
-	width  = 10
+	height = 3
+	width  = 3
 )
 
 func main() {
