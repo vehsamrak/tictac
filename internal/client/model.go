@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,7 +11,9 @@ type cell struct {
 }
 
 type model struct {
-	board [][]cell
+	board   [][]cell
+	cursorX int
+	cursorY int
 }
 
 func NewModel(height, width int) model {
@@ -35,7 +38,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "up":
+			if m.cursorY < len(m.board)-1 {
+				m.cursorY++
+			}
 		case "down":
+			if m.cursorY > 0 {
+				m.cursorY--
+			}
+		case "left":
+			if m.cursorX > 0 {
+				m.cursorX--
+			}
+		case "right":
+			if m.cursorX < len(m.board[0])-1 {
+				m.cursorX++
+			}
 		case "enter":
 		}
 	}
@@ -73,7 +90,8 @@ func (m model) View() string {
 		}
 	}
 
-	result.WriteString("\n\nPress \"q\" to quit.\n\n")
+	result.WriteString(fmt.Sprintf("\n\nCursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
+	result.WriteString("Press \"q\" to quit.\n\n")
 
 	return result.String()
 }
