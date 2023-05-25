@@ -8,16 +8,32 @@ import (
 )
 
 type cell struct {
-	isOccupied bool
-	x          int
-	y          int
+	mark string
+	x    int
+	y    int
+}
+
+type Player struct {
+	mark string
+}
+
+func (m *model) nextTurn() {
+	if m.currentPlayerId == len(m.players)-1 {
+		m.currentPlayerId = 0
+	} else {
+		m.currentPlayerId++
+	}
 }
 
 type model struct {
-	board   [][]cell
-	cursorX int
-	cursorY int
-	debug   bool
+	debugMessage    string // string with any message to render in debug mode
+	board           [][]cell
+	players         []Player
+	debug           bool
+	currentPlayerId int // id is players index
+	cursorX         int
+	cursorY         int
+	message         string
 }
 
 func NewModel(height, width int) model {
@@ -33,10 +49,20 @@ func NewModel(height, width int) model {
 		}
 	}
 
+	players := []Player{
+		{mark: "X"},
+		{mark: "O"},
+	}
+
+	currentPlayerId := 0
+
 	return model{
-		board:   board,
-		cursorX: width / 2,
-		cursorY: height / 2,
+		board:           board,
+		cursorX:         width / 2,
+		cursorY:         height / 2,
+		players:         players,
+		currentPlayerId: currentPlayerId,
+		message:         fmt.Sprintf("New game started! Current turn: %s", players[currentPlayerId].mark),
 	}
 }
 
@@ -73,6 +99,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.debug = true
 			}
 		case "enter":
+			cell := &m.board[m.cursorY][m.cursorX]
+
+			if cell.mark == "" {
+				cell.mark = m.players[m.currentPlayerId].mark
+				m.nextTurn()
+			}
 		}
 	}
 
@@ -82,7 +114,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	var result strings.Builder
 
-	result.WriteString("\n\n")
+	result.WriteString("\n")
+	result.WriteString(fmt.Sprintf("%s\n\n\n", m.message))
 
 	for y, row := range m.board {
 		for i := range row {
@@ -98,10 +131,18 @@ func (m model) View() string {
 				if m.debug {
 					result.WriteString(fmt.Sprintf("│%d %d", cell.x, cell.y))
 				} else {
-					result.WriteString("│███")
+					if cell.mark != "" {
+						result.WriteString(fmt.Sprintf("│█%s█", cell.mark))
+					} else {
+						result.WriteString("│███")
+					}
 				}
 			} else {
-				result.WriteString(fmt.Sprintf("│   "))
+				if cell.mark != "" {
+					result.WriteString(fmt.Sprintf("│ %s ", cell.mark))
+				} else {
+					result.WriteString(fmt.Sprintf("│   "))
+				}
 			}
 			if len(row)-1 == x {
 				result.WriteString("│")
@@ -117,10 +158,14 @@ func (m model) View() string {
 		}
 	}
 
-	result.WriteString("\n\nPress \"q\" to quit. \"d\" to debug.\n")
+	result.WriteString("\n\n")
+	result.WriteString("Press \"enter\" to occupy field.\n")
+	result.WriteString("Press \"q\" to quit. \"d\" to debug.\n")
 	if m.debug {
-		result.WriteString(fmt.Sprintf("Cursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
 		result.WriteString(fmt.Sprintf("Debug: %v\n", m.debug))
+		result.WriteString(fmt.Sprintf("Debug message: %v\n", m.debugMessage))
+		result.WriteString(fmt.Sprintf("Cursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
+		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[m.currentPlayerId]))
 	}
 
 	result.WriteString("\n\n")
