@@ -3,10 +3,13 @@ package main
 import "github.com/vehsamrak/tictac/internal/client"
 
 const (
-	height = 3
-	width  = 3
+	height = 5
+	width  = 5
 )
 
 func main() {
-	client.NewClient().Run(height, width)
+	client.NewClient().Run(
+		height,
+		width,
+	)
 }
