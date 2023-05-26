@@ -13,8 +13,8 @@ func NewClient() *Client {
 	return &Client{}
 }
 
-func (c *Client) Run(height, width int) error {
-	p := tea.NewProgram(NewModel(height, width))
+func (c *Client) Run(height, width, streakToWin int) error {
+	p := tea.NewProgram(NewModel(height, width, streakToWin))
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error occurred: %v", err)
 		os.Exit(1)

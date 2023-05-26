@@ -9,10 +9,6 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-const (
-	streakToWin = 5
-)
-
 type cell struct {
 	mark string
 }
@@ -23,7 +19,14 @@ type Player struct {
 
 func (m *model) nextTurn(y int, x int) {
 	if m.checkGameOver(y, x) {
-		m.message = fmt.Sprintf("Winner is %s!", m.players[m.currentPlayerId].mark)
+		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerId].mark)
+		m.gameOver = true
+		return
+	}
+
+	m.turnsLeft--
+	if m.turnsLeft == 0 {
+		m.message = fmt.Sprintf("Game over. Draw!")
 		m.gameOver = true
 		return
 	}
@@ -115,13 +118,14 @@ type model struct {
 	players         []Player
 	debug           bool
 	gameOver        bool
+	turnsLeft       int
 	currentPlayerId int // id is players index
 	cursorX         int
 	cursorY         int
 	streakToWin     int // marks streak needed to win
 }
 
-func NewModel(height, width int) model {
+func NewModel(height, width, streakToWin int) model {
 	board := make([][]cell, height)
 	for y := 0; y < height; y++ {
 		board[y] = make([]cell, width)
@@ -163,6 +167,7 @@ func NewModel(height, width int) model {
 		players:         players,
 		currentPlayerId: currentPlayerId,
 		streakToWin:     streakToWin,
+		turnsLeft:       height * width,
 		message: fmt.Sprintf(
 			"New game started! Goal is to occupy 5 in a row. Current turn: %s",
 			players[currentPlayerId].mark,
@@ -268,6 +273,7 @@ func (m model) View() string {
 	if m.debug {
 		result.WriteString(fmt.Sprintf("Debug: %v\n", m.debug))
 		result.WriteString(fmt.Sprintf("Debug message: %v\n", m.debugMessage))
+		result.WriteString(fmt.Sprintf("Turns left: %d\n", m.turnsLeft))
 		result.WriteString(fmt.Sprintf("Cursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
 		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[m.currentPlayerId]))
 	}

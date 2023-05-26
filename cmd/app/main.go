@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	height = 15
-	width  = 15
+	streakToWin = 3
+	height      = 3
+	width       = 3
 )
 
 func main() {
@@ -17,5 +18,6 @@ func main() {
 	client.NewClient().Run(
 		height,
 		width,
+		streakToWin,
 	)
 }

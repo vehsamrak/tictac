@@ -81,9 +81,8 @@ func Test_checkGameOver(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				model := NewModel(height, width)
+				model := NewModel(height, width, streakToWin)
 				model.board = tt.board
-				model.streakToWin = streakToWin
 				model.cursorY = tt.cursorY
 				model.cursorX = tt.cursorX
 				assert.Equal(
