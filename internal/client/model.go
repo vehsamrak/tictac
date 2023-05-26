@@ -9,17 +9,25 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
+const (
+	streakToWin = 5
+)
+
 type cell struct {
 	mark string
-	x    int
-	y    int
 }
 
 type Player struct {
 	mark string
 }
 
-func (m *model) nextTurn() {
+func (m *model) nextTurn(y int, x int) {
+	if m.checkGameOver(y, x) {
+		m.message = fmt.Sprintf("Winner is %s!", m.players[m.currentPlayerId].mark)
+		m.gameOver = true
+		return
+	}
+
 	if m.currentPlayerId == len(m.players)-1 {
 		m.currentPlayerId = 0
 	} else {
@@ -29,15 +37,88 @@ func (m *model) nextTurn() {
 	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerId].mark)
 }
 
+func (m *model) checkRows(calculateXY func(i int) (int, int)) bool {
+	var rowStreak int
+	var previousMark string
+	for i := 0; i < m.streakToWin*2-1; i++ {
+		y, x := calculateXY(i)
+
+		if y < 0 || x < 0 || len(m.board) <= y || len(m.board[y]) <= x {
+			continue
+		}
+
+		mark := m.board[y][x].mark
+		if mark != "" && previousMark == mark {
+			rowStreak++
+		} else {
+			rowStreak = 0
+		}
+
+		if rowStreak+1 == m.streakToWin {
+			return true
+		}
+
+		previousMark = mark
+	}
+
+	return false
+}
+
+func (m *model) checkGameOver(cursorY int, cursorX int) bool {
+	if len(m.board) == 0 {
+		return false
+	}
+
+	// check horizontal
+	if m.checkRows(
+		func(i int) (int, int) {
+			return m.cursorY, m.cursorX - m.streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	// check vertical
+	if m.checkRows(
+		func(i int) (int, int) {
+			return m.cursorY - m.streakToWin + 1 + i, m.cursorX
+		},
+	) {
+		return true
+	}
+
+	// check diagonal left to right
+	if m.checkRows(
+		func(i int) (int, int) {
+			return m.cursorY - m.streakToWin + 1 + i, m.cursorX - m.streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	// check diagonal right to left
+	if m.checkRows(
+		func(i int) (int, int) {
+			return m.cursorY + m.streakToWin - 1 - i, m.cursorX - m.streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	return false
+}
+
 type model struct {
 	debugMessage    string // string with any message to render in debug mode
 	message         string
 	board           [][]cell
 	players         []Player
 	debug           bool
+	gameOver        bool
 	currentPlayerId int // id is players index
 	cursorX         int
 	cursorY         int
+	streakToWin     int // marks streak needed to win
 }
 
 func NewModel(height, width int) model {
@@ -45,10 +126,7 @@ func NewModel(height, width int) model {
 	for y := 0; y < height; y++ {
 		board[y] = make([]cell, width)
 		for x := 0; x < width; x++ {
-			board[y][x] = cell{
-				x: x,
-				y: y,
-			}
+			board[y][x] = cell{}
 		}
 	}
 
@@ -70,7 +148,6 @@ func NewModel(height, width int) model {
 		usedColors = append(usedColors, color)
 
 		players = append(players, Player{
-			// mark: lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color(colors[i].Hex())).Render(mark),
 			mark: lipgloss.NewStyle().Bold(true).Foreground(
 				lipgloss.Color(color.Hex()),
 			).Render(mark),
@@ -85,6 +162,7 @@ func NewModel(height, width int) model {
 		cursorY:         height / 2,
 		players:         players,
 		currentPlayerId: currentPlayerId,
+		streakToWin:     streakToWin,
 		message: fmt.Sprintf(
 			"New game started! Goal is to occupy 5 in a row. Current turn: %s",
 			players[currentPlayerId].mark,
@@ -97,6 +175,10 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.gameOver {
+		return m, tea.Quit
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -129,7 +211,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if cell.mark == "" {
 				cell.mark = m.players[m.currentPlayerId].mark
-				m.nextTurn()
+				m.nextTurn(m.cursorY, m.cursorX)
 			}
 		}
 	}
@@ -154,14 +236,10 @@ func (m model) View() string {
 
 		for x, cell := range row {
 			if x == m.cursorX && y == m.cursorY {
-				if m.debug {
-					result.WriteString(fmt.Sprintf("│%d %d", cell.x, cell.y))
+				if cell.mark != "" {
+					result.WriteString(fmt.Sprintf("│█%s█", cell.mark))
 				} else {
-					if cell.mark != "" {
-						result.WriteString(fmt.Sprintf("│█%s█", cell.mark))
-					} else {
-						result.WriteString("│███")
-					}
+					result.WriteString("│███")
 				}
 			} else {
 				if cell.mark != "" {
