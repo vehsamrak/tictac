@@ -181,10 +181,6 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.gameOver {
-		return m, tea.Quit
-	}
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -207,17 +203,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursorX++
 			}
 		case "d":
-			if m.debug {
-				m.debug = false
-			} else {
-				m.debug = true
-			}
+			m.debug = !m.debug
 		case "enter", " ":
 			cell := &m.board[m.cursorY][m.cursorX]
 
 			if cell.mark == "" {
 				cell.mark = m.players[m.currentPlayerId].mark
 				m.nextTurn(m.cursorY, m.cursorX)
+			}
+
+			if m.gameOver {
+				return m, tea.Quit
 			}
 		}
 	}
