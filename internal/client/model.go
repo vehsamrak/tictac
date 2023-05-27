@@ -17,6 +17,71 @@ type Player struct {
 	mark string
 }
 
+type model struct {
+	debugMessage    string // string with any message to render in debug mode
+	message         string
+	board           [][]cell
+	players         []Player
+	debug           bool
+	gameOver        bool
+	turnsLeft       int
+	currentPlayerId int // id is players index
+	cursorX         int
+	cursorY         int
+	streakToWin     int // marks streak needed to win
+}
+
+func NewModel(height, width, streakToWin int) model {
+	board := make([][]cell, height)
+	for y := 0; y < height; y++ {
+		board[y] = make([]cell, width)
+		for x := 0; x < width; x++ {
+			board[y][x] = cell{}
+		}
+	}
+
+	marks := []string{"X", "O"}
+	var usedColors []colorful.Color
+	var players []Player
+	for _, mark := range marks {
+		// selecting different colors for each player
+		color := colorful.HappyColor()
+		for _, usedColor := range usedColors {
+			for {
+				color = colorful.HappyColor()
+				if color.DistanceLab(usedColor) >= 1 {
+					break
+				}
+			}
+		}
+
+		usedColors = append(usedColors, color)
+
+		players = append(players, Player{
+			mark: lipgloss.NewStyle().Bold(true).Foreground(
+				lipgloss.Color(color.Hex()),
+			).Render(mark),
+		})
+	}
+
+	currentPlayerId := 0
+
+	return model{
+		board:           board,
+		cursorX:         width / 2,
+		cursorY:         height / 2,
+		players:         players,
+		currentPlayerId: currentPlayerId,
+		streakToWin:     streakToWin,
+		turnsLeft:       height * width,
+		message: fmt.Sprintf(
+			"New game started! Goal is to occupy %d in a row. Current turn: %s",
+			streakToWin,
+			players[currentPlayerId].mark,
+		),
+	}
+}
+
 func (m *model) nextTurn(y int, x int) {
 	if m.checkGameOver(y, x) {
 		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerId].mark)
@@ -109,70 +174,6 @@ func (m *model) checkGameOver(cursorY int, cursorX int) bool {
 	}
 
 	return false
-}
-
-type model struct {
-	debugMessage    string // string with any message to render in debug mode
-	message         string
-	board           [][]cell
-	players         []Player
-	debug           bool
-	gameOver        bool
-	turnsLeft       int
-	currentPlayerId int // id is players index
-	cursorX         int
-	cursorY         int
-	streakToWin     int // marks streak needed to win
-}
-
-func NewModel(height, width, streakToWin int) model {
-	board := make([][]cell, height)
-	for y := 0; y < height; y++ {
-		board[y] = make([]cell, width)
-		for x := 0; x < width; x++ {
-			board[y][x] = cell{}
-		}
-	}
-
-	marks := []string{"X", "O"}
-	var usedColors []colorful.Color
-	var players []Player
-	for _, mark := range marks {
-		// selecting different colors for each player
-		color := colorful.HappyColor()
-		for _, usedColor := range usedColors {
-			for {
-				color = colorful.HappyColor()
-				if color.DistanceLab(usedColor) >= 1 {
-					break
-				}
-			}
-		}
-
-		usedColors = append(usedColors, color)
-
-		players = append(players, Player{
-			mark: lipgloss.NewStyle().Bold(true).Foreground(
-				lipgloss.Color(color.Hex()),
-			).Render(mark),
-		})
-	}
-
-	currentPlayerId := 0
-
-	return model{
-		board:           board,
-		cursorX:         width / 2,
-		cursorY:         height / 2,
-		players:         players,
-		currentPlayerId: currentPlayerId,
-		streakToWin:     streakToWin,
-		turnsLeft:       height * width,
-		message: fmt.Sprintf(
-			"New game started! Goal is to occupy 5 in a row. Current turn: %s",
-			players[currentPlayerId].mark,
-		),
-	}
 }
 
 func (m model) Init() tea.Cmd {
