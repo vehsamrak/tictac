@@ -15,21 +15,21 @@ func Test_checkGameOver(t *testing.T) {
 	)
 	tests := []struct {
 		name     string
-		board    [][]cell
+		board    [][]Cell
 		cursorY  int
 		cursorX  int
 		expected bool
 	}{
 		{
 			name:     "given empty board, expect game is not over",
-			board:    [][]cell{},
+			board:    [][]Cell{},
 			expected: false,
 		},
 		{
 			name: "given board with 2 same marks on first line and 1 on second line, expect game is not over",
-			board: [][]cell{
-				{{}, {mark: X}, {mark: X}},
-				{{mark: X}, {}, {}},
+			board: [][]Cell{
+				{{}, {Mark: X}, {Mark: X}},
+				{{Mark: X}, {}, {}},
 			},
 			cursorY:  0,
 			cursorX:  1,
@@ -37,8 +37,8 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks horizontally, expect game is over",
-			board: [][]cell{
-				{{mark: X}, {mark: X}, {mark: X}},
+			board: [][]Cell{
+				{{Mark: X}, {Mark: X}, {Mark: X}},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -46,10 +46,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks vertically, expect game is over",
-			board: [][]cell{
-				{{mark: X}, {}, {}},
-				{{mark: X}, {}, {}},
-				{{mark: X}, {}, {}},
+			board: [][]Cell{
+				{{Mark: X}, {}, {}},
+				{{Mark: X}, {}, {}},
+				{{Mark: X}, {}, {}},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -57,10 +57,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks diagonally from left, expect game is over",
-			board: [][]cell{
-				{{mark: X}, {}, {}},
-				{{}, {mark: X}, {}},
-				{{}, {}, {mark: X}},
+			board: [][]Cell{
+				{{Mark: X}, {}, {}},
+				{{}, {Mark: X}, {}},
+				{{}, {}, {Mark: X}},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -68,10 +68,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks diagonally from right, expect game is over",
-			board: [][]cell{
-				{{}, {}, {mark: X}},
-				{{}, {mark: X}, {}},
-				{{mark: X}, {}, {}},
+			board: [][]Cell{
+				{{}, {}, {Mark: X}},
+				{{}, {Mark: X}, {}},
+				{{Mark: X}, {}, {}},
 			},
 			cursorY:  0,
 			cursorX:  2,

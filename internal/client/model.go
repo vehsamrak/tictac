@@ -9,8 +9,8 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-type cell struct {
-	mark string
+type Cell struct {
+	Mark string
 }
 
 type Player struct {
@@ -20,7 +20,7 @@ type Player struct {
 type model struct {
 	debugMessage    string // string with any message to render in debug mode
 	message         string
-	board           [][]cell
+	board           [][]Cell
 	players         []Player
 	debug           bool
 	gameOver        bool
@@ -32,11 +32,11 @@ type model struct {
 }
 
 func NewModel(height, width, streakToWin int) model {
-	board := make([][]cell, height)
+	board := make([][]Cell, height)
 	for y := 0; y < height; y++ {
-		board[y] = make([]cell, width)
+		board[y] = make([]Cell, width)
 		for x := 0; x < width; x++ {
-			board[y][x] = cell{}
+			board[y][x] = Cell{}
 		}
 	}
 
@@ -115,7 +115,7 @@ func (m *model) checkRows(calculateXY func(i int) (int, int)) bool {
 			continue
 		}
 
-		mark := m.board[y][x].mark
+		mark := m.board[y][x].Mark
 		if mark != "" && previousMark == mark {
 			rowStreak++
 		} else {
@@ -207,8 +207,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			cell := &m.board[m.cursorY][m.cursorX]
 
-			if cell.mark == "" {
-				cell.mark = m.players[m.currentPlayerId].mark
+			if cell.Mark == "" {
+				cell.Mark = m.players[m.currentPlayerId].mark
 				m.nextTurn(m.cursorY, m.cursorX)
 			}
 
@@ -238,14 +238,14 @@ func (m model) View() string {
 
 		for x, cell := range row {
 			if x == m.cursorX && y == m.cursorY {
-				if cell.mark != "" {
-					result.WriteString(fmt.Sprintf("│█%s█", cell.mark))
+				if cell.Mark != "" {
+					result.WriteString(fmt.Sprintf("│█%s█", cell.Mark))
 				} else {
 					result.WriteString("│███")
 				}
 			} else {
-				if cell.mark != "" {
-					result.WriteString(fmt.Sprintf("│ %s ", cell.mark))
+				if cell.Mark != "" {
+					result.WriteString(fmt.Sprintf("│ %s ", cell.Mark))
 				} else {
 					result.WriteString(fmt.Sprintf("│   "))
 				}
