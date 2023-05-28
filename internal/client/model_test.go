@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/vehsamrak/tictac/internal/tictac"
 )
 
 func Test_checkGameOver(t *testing.T) {
@@ -11,25 +12,25 @@ func Test_checkGameOver(t *testing.T) {
 		height      = 3
 		width       = 3
 		streakToWin = 3
-		X           = "X"
+		x           = "X"
 	)
 	tests := []struct {
 		name     string
-		board    [][]Cell
+		board    [][]string
 		cursorY  int
 		cursorX  int
 		expected bool
 	}{
 		{
 			name:     "given empty board, expect game is not over",
-			board:    [][]Cell{},
+			board:    [][]string{},
 			expected: false,
 		},
 		{
 			name: "given board with 2 same marks on first line and 1 on second line, expect game is not over",
-			board: [][]Cell{
-				{{}, {Mark: X}, {Mark: X}},
-				{{Mark: X}, {}, {}},
+			board: [][]string{
+				{"", x, x},
+				{x, "", ""},
 			},
 			cursorY:  0,
 			cursorX:  1,
@@ -37,8 +38,8 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks horizontally, expect game is over",
-			board: [][]Cell{
-				{{Mark: X}, {Mark: X}, {Mark: X}},
+			board: [][]string{
+				{x, x, x},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -46,10 +47,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks vertically, expect game is over",
-			board: [][]Cell{
-				{{Mark: X}, {}, {}},
-				{{Mark: X}, {}, {}},
-				{{Mark: X}, {}, {}},
+			board: [][]string{
+				{x, "", ""},
+				{x, "", ""},
+				{x, "", ""},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -57,10 +58,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks diagonally from left, expect game is over",
-			board: [][]Cell{
-				{{Mark: X}, {}, {}},
-				{{}, {Mark: X}, {}},
-				{{}, {}, {Mark: X}},
+			board: [][]string{
+				{x, "", ""},
+				{"", x, ""},
+				{"", "", x},
 			},
 			cursorY:  0,
 			cursorX:  0,
@@ -68,10 +69,10 @@ func Test_checkGameOver(t *testing.T) {
 		},
 		{
 			name: "given board with 3 same marks diagonally from right, expect game is over",
-			board: [][]Cell{
-				{{}, {}, {Mark: X}},
-				{{}, {Mark: X}, {}},
-				{{Mark: X}, {}, {}},
+			board: [][]string{
+				{"", "", x},
+				{"", x, ""},
+				{x, "", ""},
 			},
 			cursorY:  0,
 			cursorX:  2,
@@ -83,12 +84,15 @@ func Test_checkGameOver(t *testing.T) {
 			tt.name, func(t *testing.T) {
 				model := NewModel(height, width, streakToWin)
 				model.board = tt.board
-				model.cursorY = tt.cursorY
-				model.cursorX = tt.cursorX
 				assert.Equal(
 					t,
 					tt.expected,
-					model.checkGameOver(tt.cursorY, tt.cursorX),
+					tictac.CheckGameOver(
+						model.board,
+						tt.cursorY,
+						tt.cursorX,
+						streakToWin,
+					),
 				)
 			},
 		)

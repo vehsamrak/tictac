@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/vehsamrak/tictac/internal/tictac"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lucasb-eyer/go-colorful"
 )
-
-type Cell struct {
-	Mark string
-}
 
 type Player struct {
 	mark string
@@ -20,7 +18,7 @@ type Player struct {
 type model struct {
 	debugMessage    string // string with any message to render in debug mode
 	message         string
-	board           [][]Cell
+	board           [][]string
 	players         []Player
 	debug           bool
 	gameOver        bool
@@ -32,12 +30,9 @@ type model struct {
 }
 
 func NewModel(height, width, streakToWin int) model {
-	board := make([][]Cell, height)
+	board := make([][]string, height)
 	for y := 0; y < height; y++ {
-		board[y] = make([]Cell, width)
-		for x := 0; x < width; x++ {
-			board[y][x] = Cell{}
-		}
+		board[y] = make([]string, width)
 	}
 
 	marks := []string{"X", "O"}
@@ -83,7 +78,7 @@ func NewModel(height, width, streakToWin int) model {
 }
 
 func (m *model) nextTurn(y int, x int) {
-	if m.checkGameOver(y, x) {
+	if tictac.CheckGameOver(m.board, y, x, m.streakToWin) {
 		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerId].mark)
 		m.gameOver = true
 		return
@@ -103,77 +98,6 @@ func (m *model) nextTurn(y int, x int) {
 	}
 
 	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerId].mark)
-}
-
-func (m *model) checkRows(calculateXY func(i int) (int, int)) bool {
-	var rowStreak int
-	var previousMark string
-	for i := 0; i < m.streakToWin*2-1; i++ {
-		y, x := calculateXY(i)
-
-		if y < 0 || x < 0 || len(m.board) <= y || len(m.board[y]) <= x {
-			continue
-		}
-
-		mark := m.board[y][x].Mark
-		if mark != "" && previousMark == mark {
-			rowStreak++
-		} else {
-			rowStreak = 0
-		}
-
-		if rowStreak+1 == m.streakToWin {
-			return true
-		}
-
-		previousMark = mark
-	}
-
-	return false
-}
-
-func (m *model) checkGameOver(cursorY int, cursorX int) bool {
-	if len(m.board) == 0 {
-		return false
-	}
-
-	// check horizontal
-	if m.checkRows(
-		func(i int) (int, int) {
-			return m.cursorY, m.cursorX - m.streakToWin + 1 + i
-		},
-	) {
-		return true
-	}
-
-	// check vertical
-	if m.checkRows(
-		func(i int) (int, int) {
-			return m.cursorY - m.streakToWin + 1 + i, m.cursorX
-		},
-	) {
-		return true
-	}
-
-	// check diagonal left to right
-	if m.checkRows(
-		func(i int) (int, int) {
-			return m.cursorY - m.streakToWin + 1 + i, m.cursorX - m.streakToWin + 1 + i
-		},
-	) {
-		return true
-	}
-
-	// check diagonal right to left
-	if m.checkRows(
-		func(i int) (int, int) {
-			return m.cursorY + m.streakToWin - 1 - i, m.cursorX - m.streakToWin + 1 + i
-		},
-	) {
-		return true
-	}
-
-	return false
 }
 
 func (m model) Init() tea.Cmd {
@@ -205,10 +129,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			m.debug = !m.debug
 		case "enter", " ":
-			cell := &m.board[m.cursorY][m.cursorX]
-
-			if cell.Mark == "" {
-				cell.Mark = m.players[m.currentPlayerId].mark
+			if m.board[m.cursorY][m.cursorX] == "" {
+				m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerId].mark
 				m.nextTurn(m.cursorY, m.cursorX)
 			}
 
@@ -238,14 +160,14 @@ func (m model) View() string {
 
 		for x, cell := range row {
 			if x == m.cursorX && y == m.cursorY {
-				if cell.Mark != "" {
-					result.WriteString(fmt.Sprintf("│█%s█", cell.Mark))
+				if cell != "" {
+					result.WriteString(fmt.Sprintf("│█%s█", cell))
 				} else {
 					result.WriteString("│███")
 				}
 			} else {
-				if cell.Mark != "" {
-					result.WriteString(fmt.Sprintf("│ %s ", cell.Mark))
+				if cell != "" {
+					result.WriteString(fmt.Sprintf("│ %s ", cell))
 				} else {
 					result.WriteString(fmt.Sprintf("│   "))
 				}
