@@ -7,6 +7,7 @@ import (
 const (
 	scoreWin  = 10
 	scoreLose = -10
+	scoreDraw = 0
 )
 
 type Data struct {
@@ -23,24 +24,65 @@ type Minimax struct{}
 
 // Minimax applies best move prediction algorithm to tictactoe board
 func (m *Minimax) Minimax(data Data) int {
-	if tictac.IsFull(data.board) {
-		isGameOver := tictac.CheckGameOver(
-			data.board,
-			data.cursorY,
-			data.cursorX,
-			data.streakToWin,
-		)
+	isGameOver := tictac.CheckGameOver(
+		data.board,
+		data.cursorY,
+		data.cursorX,
+		data.streakToWin,
+	)
 
-		if isGameOver {
-			if data.board[data.cursorY][data.cursorX] == data.currentMark {
-				return 10
-			}
-
-			return -10
+	if isGameOver {
+		if data.board[data.cursorY][data.cursorX] == data.currentMark {
+			return scoreLose
 		}
 
-		return 0
+		return scoreWin
 	}
+
+	if tictac.IsFull(data.board) {
+		return scoreDraw
+	}
+
+	emptyCells := tictac.GetEmptyCells(data.board)
+	for _, emptyCell := range emptyCells {
+		emptyCellY, emptyCellX := emptyCell[0], emptyCell[1]
+
+		predictedBoard := data.board
+		predictedBoard[emptyCellY][emptyCellX] = "x"
+
+		m.Minimax(Data{
+			cursorY:     emptyCellY,
+			cursorX:     emptyCellX,
+			currentMark: data.currentMark,
+			streakToWin: data.streakToWin,
+			board:       predictedBoard,
+		})
+	}
+
+	// isGameOver := tictac.CheckGameOver(
+	// 	data.board,
+	// 	data.cursorY,
+	// 	data.cursorX,
+	// 	data.streakToWin,
+	// )
+	//
+	// if tictac.IsFull(data.board) {
+	// 	if isGameOver {
+	// 		if data.board[data.cursorY][data.cursorX] == data.currentMark {
+	// 			return 10
+	// 		}
+	//
+	// 		return -10
+	// 	}
+	//
+	// 	return 0
+	// }
+
+	// collect all empty cells
+	// calculate minimax for each
+	// invert mark
+	// add mark on board
+	// take max of each minimax and return
 
 	return 0
 }

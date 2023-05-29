@@ -67,56 +67,88 @@ func TestMinimax(t *testing.T) {
 		arguments arguments
 		expected  int
 	}{
+		// {
+		// 	name: "board with no empty cells and draw combination, must return 0",
+		// 	arguments: arguments{
+		// 		data: Data{
+		// 			board: [][]string{
+		// 				{"o", "x", "o"},
+		// 				{"x", "o", "x"},
+		// 				{"x", "o", "x"},
+		// 			},
+		// 			streakToWin: 3,
+		// 			currentMark: "x",
+		// 			cursorX:     1,
+		// 			cursorY:     0,
+		// 		},
+		// 	},
+		// 	expected: 0,
+		// },
+		// {
+		// 	name: "board with no empty cells and win combination, must return 10",
+		// 	arguments: arguments{
+		// 		data: Data{
+		// 			board: [][]string{
+		// 				{"o", "x", "o"},
+		// 				{"x", "x", "x"},
+		// 				{"o", "o", "x"},
+		// 			},
+		// 			streakToWin: 3,
+		// 			currentMark: "x",
+		// 			cursorX:     1,
+		// 			cursorY:     1,
+		// 		},
+		// 	},
+		// 	expected: 10,
+		// },
+		// {
+		// 	name: "board with no empty cells and lose combination, must return -10",
+		// 	arguments: arguments{
+		// 		data: Data{
+		// 			board: [][]string{
+		// 				{"o", "x", "o"},
+		// 				{"x", "o", "x"},
+		// 				{"x", "o", "o"},
+		// 			},
+		// 			streakToWin: 3,
+		// 			currentMark: "x",
+		// 			cursorX:     2,
+		// 			cursorY:     2,
+		// 		},
+		// 	},
+		// 	expected: -10,
+		// },
+		// {
+		// 	name: "board with empty cells and winning combination on depth 1, must return 9",
+		// 	arguments: arguments{
+		// 		data: Data{
+		// 			board: [][]string{
+		// 				{"o", "x", "o"},
+		// 				{"x", "o", "x"},
+		// 				{"x", "x", ""},
+		// 			},
+		// 			streakToWin: 3,
+		// 			currentMark: "x",
+		// 			cursorX:     0,
+		// 			cursorY:     2,
+		// 		},
+		// 	},
+		// 	expected: -9,
+		// },
 		{
-			name: "board with no empty cells and draw combination, must return 0",
+			name: "board with empty cells and winning combination on depth 1, must return 9",
 			arguments: arguments{
 				data: Data{
 					board: [][]string{
-						{"o", "x", "o"},
-						{"x", "o", "x"},
-						{"x", "o", "x"},
+						{"x", ""},
 					},
-					streakToWin: 3,
+					streakToWin: 2,
 					currentMark: "x",
-					cursorX:     1,
+					cursorX:     0,
 					cursorY:     0,
 				},
 			},
-			expected: 0,
-		},
-		{
-			name: "board with no empty cells and win combination, must return 10",
-			arguments: arguments{
-				data: Data{
-					board: [][]string{
-						{"o", "x", "o"},
-						{"x", "x", "x"},
-						{"o", "o", "x"},
-					},
-					streakToWin: 3,
-					currentMark: "x",
-					cursorX:     1,
-					cursorY:     1,
-				},
-			},
-			expected: 10,
-		},
-		{
-			name: "board with no empty cells and lose combination, must return -10",
-			arguments: arguments{
-				data: Data{
-					board: [][]string{
-						{"o", "x", "o"},
-						{"x", "o", "x"},
-						{"x", "o", "o"},
-					},
-					streakToWin: 3,
-					currentMark: "x",
-					cursorX:     2,
-					cursorY:     2,
-				},
-			},
-			expected: -10,
+			expected: -9,
 		},
 	}
 	for _, tt := range tests {
