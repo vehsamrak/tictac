@@ -1,6 +1,63 @@
 package tictac
 
-func CheckRows(
+func CheckGameOver(
+	board [][]string,
+	cursorY int,
+	cursorX int,
+	streakToWin int,
+) bool {
+	if len(board) == 0 {
+		return false
+	}
+
+	// check horizontal
+	if checkRows(
+		board,
+		streakToWin,
+		func(i int) (int, int) {
+			return cursorY, cursorX - streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	// check vertical
+	if checkRows(
+		board,
+		streakToWin,
+		func(i int) (int, int) {
+			return cursorY - streakToWin + 1 + i, cursorX
+		},
+	) {
+		return true
+	}
+
+	// check diagonal left to right
+	if checkRows(
+		board,
+		streakToWin,
+		func(i int) (int, int) {
+			return cursorY - streakToWin + 1 + i, cursorX - streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	// check diagonal right to left
+	if checkRows(
+		board,
+		streakToWin,
+		func(i int) (int, int) {
+			return cursorY + streakToWin - 1 - i, cursorX - streakToWin + 1 + i
+		},
+	) {
+		return true
+	}
+
+	return false
+}
+
+func checkRows(
 	board [][]string,
 	streakToWin int,
 	calculateXY func(i int) (int, int),
@@ -26,63 +83,6 @@ func CheckRows(
 		}
 
 		previousMark = mark
-	}
-
-	return false
-}
-
-func CheckGameOver(
-	board [][]string,
-	cursorY int,
-	cursorX int,
-	streakToWin int,
-) bool {
-	if len(board) == 0 {
-		return false
-	}
-
-	// check horizontal
-	if CheckRows(
-		board,
-		streakToWin,
-		func(i int) (int, int) {
-			return cursorY, cursorX - streakToWin + 1 + i
-		},
-	) {
-		return true
-	}
-
-	// check vertical
-	if CheckRows(
-		board,
-		streakToWin,
-		func(i int) (int, int) {
-			return cursorY - streakToWin + 1 + i, cursorX
-		},
-	) {
-		return true
-	}
-
-	// check diagonal left to right
-	if CheckRows(
-		board,
-		streakToWin,
-		func(i int) (int, int) {
-			return cursorY - streakToWin + 1 + i, cursorX - streakToWin + 1 + i
-		},
-	) {
-		return true
-	}
-
-	// check diagonal right to left
-	if CheckRows(
-		board,
-		streakToWin,
-		func(i int) (int, int) {
-			return cursorY + streakToWin - 1 - i, cursorX - streakToWin + 1 + i
-		},
-	) {
-		return true
 	}
 
 	return false

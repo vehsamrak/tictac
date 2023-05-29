@@ -16,14 +16,14 @@ type Player struct {
 }
 
 type model struct {
-	debugMessage    string // string with any message to render in debug mode
-	message         string
+	messageDebug    string // string with any message to render in debug mode
+	message         string // game message to render
 	board           [][]string
 	players         []Player
 	debug           bool
 	gameOver        bool
 	turnsLeft       int
-	currentPlayerId int // id is players index
+	currentPlayerID int // id is player index
 	cursorX         int
 	cursorY         int
 	streakToWin     int // marks streak needed to win
@@ -66,7 +66,7 @@ func NewModel(height, width, streakToWin int) model {
 		cursorX:         width / 2,
 		cursorY:         height / 2,
 		players:         players,
-		currentPlayerId: currentPlayerId,
+		currentPlayerID: currentPlayerId,
 		streakToWin:     streakToWin,
 		turnsLeft:       height * width,
 		message: fmt.Sprintf(
@@ -79,7 +79,7 @@ func NewModel(height, width, streakToWin int) model {
 
 func (m *model) nextTurn(y int, x int) {
 	if tictac.CheckGameOver(m.board, y, x, m.streakToWin) {
-		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerId].mark)
+		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerID].mark)
 		m.gameOver = true
 		return
 	}
@@ -91,13 +91,13 @@ func (m *model) nextTurn(y int, x int) {
 		return
 	}
 
-	if m.currentPlayerId == len(m.players)-1 {
-		m.currentPlayerId = 0
+	if m.currentPlayerID == len(m.players)-1 {
+		m.currentPlayerID = 0
 	} else {
-		m.currentPlayerId++
+		m.currentPlayerID++
 	}
 
-	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerId].mark)
+	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerID].mark)
 }
 
 func (m model) Init() tea.Cmd {
@@ -130,7 +130,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.debug = !m.debug
 		case "enter", " ":
 			if m.board[m.cursorY][m.cursorX] == "" {
-				m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerId].mark
+				m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerID].mark
 				m.nextTurn(m.cursorY, m.cursorX)
 			}
 
@@ -191,10 +191,10 @@ func (m model) View() string {
 	result.WriteString("Press \"q\" to quit. \"d\" to debug.\n")
 	if m.debug {
 		result.WriteString(fmt.Sprintf("Debug: %v\n", m.debug))
-		result.WriteString(fmt.Sprintf("Debug message: %v\n", m.debugMessage))
+		result.WriteString(fmt.Sprintf("Debug message: %v\n", m.messageDebug))
 		result.WriteString(fmt.Sprintf("Turns left: %d\n", m.turnsLeft))
 		result.WriteString(fmt.Sprintf("Cursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
-		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[m.currentPlayerId]))
+		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[m.currentPlayerID]))
 	}
 
 	result.WriteString("\n\n")
