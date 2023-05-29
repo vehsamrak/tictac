@@ -57,6 +57,19 @@ func CheckGameOver(
 	return false
 }
 
+// IsFull checks if board has at least one empty field
+func IsFull(board [][]string) bool {
+	for _, row := range board {
+		for _, mark := range row {
+			if mark == "" {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func checkRows(
 	board [][]string,
 	streakToWin int,

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/vehsamrak/tictac/internal/tictac"
 )
 
 func TestIsFull(t *testing.T) {
@@ -50,7 +51,7 @@ func TestIsFull(t *testing.T) {
 				assert.Equal(
 					t,
 					tt.expected,
-					isFull(tt.arguments.board),
+					tictac.IsFull(tt.arguments.board),
 				)
 			},
 		)

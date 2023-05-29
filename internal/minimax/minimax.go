@@ -11,22 +11,19 @@ const (
 
 type Data struct {
 	evaluate    func() int
-	currentMark string
-	board       [][]string
-	cursorY     int
-	cursorX     int
-	streakToWin int
-	depth       int
+	currentMark string     // mark of current player
+	board       [][]string // tic-tac-toe board
+	cursorY     int        // last move Y
+	cursorX     int        // last move X
+	streakToWin int        // streak of marks needed to win
+	depth       int        // depth of current node in minmax tree
 }
 
 type Minimax struct{}
 
+// Minimax applies best move prediction algorithm to tictactoe board
 func (m *Minimax) Minimax(data Data) int {
-	// if win = 10, lose = -10, draw = 0, max depth = 0
-	// for each empty cell run minimax
-	// if minimax()
-
-	if isFull(data.board) {
+	if tictac.IsFull(data.board) {
 		isGameOver := tictac.CheckGameOver(
 			data.board,
 			data.cursorY,
@@ -46,17 +43,4 @@ func (m *Minimax) Minimax(data Data) int {
 	}
 
 	return 0
-}
-
-// isFull checks if board has at least one empty field
-func isFull(board [][]string) bool {
-	for _, row := range board {
-		for _, mark := range row {
-			if mark == "" {
-				return false
-			}
-		}
-	}
-
-	return true
 }
