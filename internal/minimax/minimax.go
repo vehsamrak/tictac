@@ -11,8 +11,8 @@ const (
 )
 
 type Data struct {
-	evaluate    func() int
 	currentMark string     // mark of current player
+	Players     []string   // players marks
 	board       [][]string // tic-tac-toe board
 	cursorY     int        // last move Y
 	cursorX     int        // last move X
@@ -43,6 +43,7 @@ func (m *Minimax) Minimax(data Data) int {
 		return scoreDraw
 	}
 
+	var value int
 	emptyCells := tictac.GetEmptyCells(data.board)
 	for _, emptyCell := range emptyCells {
 		emptyCellY, emptyCellX := emptyCell[0], emptyCell[1]
@@ -50,14 +51,21 @@ func (m *Minimax) Minimax(data Data) int {
 		predictedBoard := data.board
 		predictedBoard[emptyCellY][emptyCellX] = "x"
 
-		m.Minimax(Data{
+		minimaxValue := m.Minimax(Data{
 			cursorY:     emptyCellY,
 			cursorX:     emptyCellX,
 			currentMark: data.currentMark,
 			streakToWin: data.streakToWin,
 			board:       predictedBoard,
+			depth:       data.depth + 1,
 		})
+
+		if minimaxValue < value {
+			value = minimaxValue + data.depth
+		}
 	}
+
+	return value
 
 	// isGameOver := tictac.CheckGameOver(
 	// 	data.board,

@@ -135,8 +135,12 @@ func TestMinimax(t *testing.T) {
 		// 	},
 		// 	expected: -9,
 		// },
+		//
+		//
+		//
+		//
 		{
-			name: "board with empty cells and winning combination on depth 1, must return 9",
+			name: "board with empty cells and winning combination on depth 0, must return 10",
 			arguments: arguments{
 				data: Data{
 					board: [][]string{
@@ -148,7 +152,24 @@ func TestMinimax(t *testing.T) {
 					cursorY:     0,
 				},
 			},
-			expected: -9,
+			expected: -10,
+		},
+		{
+			name: "board with empty cells and winning combination on depth 1, must return 10",
+			arguments: arguments{
+				data: Data{
+					board: [][]string{
+						{"x", "x", "o"},
+						{"x", "o", "o"},
+						{"", "x", ""},
+					},
+					streakToWin: 3,
+					currentMark: "x",
+					cursorX:     0,
+					cursorY:     0,
+				},
+			},
+			expected: -10,
 		},
 	}
 	for _, tt := range tests {
