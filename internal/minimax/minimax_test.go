@@ -60,127 +60,85 @@ func TestIsFull(t *testing.T) {
 
 func TestMinimax(t *testing.T) {
 	type arguments struct {
-		data Data
+		board [][]string
+		data  Data
+		depth int
 	}
 	tests := []struct {
-		name      string
-		arguments arguments
-		expected  int
+		name          string
+		arguments     arguments
+		expectedScore int
+		expectedY     int
+		expectedX     int
 	}{
-		// {
-		// 	name: "board with no empty cells and draw combination, must return 0",
-		// 	arguments: arguments{
-		// 		data: Data{
-		// 			board: [][]string{
-		// 				{"o", "x", "o"},
-		// 				{"x", "o", "x"},
-		// 				{"x", "o", "x"},
-		// 			},
-		// 			streakToWin: 3,
-		// 			currentMark: "x",
-		// 			cursorX:     1,
-		// 			cursorY:     0,
-		// 		},
-		// 	},
-		// 	expected: 0,
-		// },
-		// {
-		// 	name: "board with no empty cells and win combination, must return 10",
-		// 	arguments: arguments{
-		// 		data: Data{
-		// 			board: [][]string{
-		// 				{"o", "x", "o"},
-		// 				{"x", "x", "x"},
-		// 				{"o", "o", "x"},
-		// 			},
-		// 			streakToWin: 3,
-		// 			currentMark: "x",
-		// 			cursorX:     1,
-		// 			cursorY:     1,
-		// 		},
-		// 	},
-		// 	expected: 10,
-		// },
-		// {
-		// 	name: "board with no empty cells and lose combination, must return -10",
-		// 	arguments: arguments{
-		// 		data: Data{
-		// 			board: [][]string{
-		// 				{"o", "x", "o"},
-		// 				{"x", "o", "x"},
-		// 				{"x", "o", "o"},
-		// 			},
-		// 			streakToWin: 3,
-		// 			currentMark: "x",
-		// 			cursorX:     2,
-		// 			cursorY:     2,
-		// 		},
-		// 	},
-		// 	expected: -10,
-		// },
-		// {
-		// 	name: "board with empty cells and winning combination on depth 1, must return 9",
-		// 	arguments: arguments{
-		// 		data: Data{
-		// 			board: [][]string{
-		// 				{"o", "x", "o"},
-		// 				{"x", "o", "x"},
-		// 				{"x", "x", ""},
-		// 			},
-		// 			streakToWin: 3,
-		// 			currentMark: "x",
-		// 			cursorX:     0,
-		// 			cursorY:     2,
-		// 		},
-		// 	},
-		// 	expected: -9,
-		// },
-		//
-		//
-		//
-		//
 		{
-			name: "board with empty cells and winning combination on depth 0, must return 10",
+			name: "board with empty cells and winning combination on depth 1, must return 9",
 			arguments: arguments{
 				data: Data{
-					board: [][]string{
-						{"x", ""},
-					},
-					streakToWin: 2,
-					currentMark: "x",
-					cursorX:     0,
-					cursorY:     0,
+					Players:       []string{"x", "o"},
+					streakToWin:   2,
+					maximizerMark: "x",
+					cursorX:       0,
+					cursorY:       0,
+				},
+				board: [][]string{
+					{"x", ""},
 				},
 			},
-			expected: -10,
+			expectedScore: 9,
+			expectedY:     0,
+			expectedX:     1,
 		},
 		{
-			name: "board with empty cells and winning combination on depth 1, must return 10",
+			name: "board with empty cells and winning combination on depth 1, must return 9",
 			arguments: arguments{
+				board: [][]string{
+					{"x", "x", "o"},
+					{"x", "o", "o"},
+					{"", "x", ""},
+				},
 				data: Data{
-					board: [][]string{
-						{"x", "x", "o"},
-						{"x", "o", "o"},
-						{"", "x", ""},
-					},
-					streakToWin: 3,
-					currentMark: "x",
-					cursorX:     0,
-					cursorY:     0,
+					Players:       []string{"x", "o"},
+					streakToWin:   3,
+					maximizerMark: "x",
+					cursorX:       0,
+					cursorY:       0,
 				},
 			},
-			expected: -10,
+			expectedScore: 9,
+			expectedY:     2,
+			expectedX:     0,
+		},
+		{
+			name: "board with empty cells and winning combination on depth X, must return Y",
+			arguments: arguments{
+				board: [][]string{
+					{"o", "", ""},
+					{"", "o", ""},
+					{"o", "x", "x"},
+				},
+				data: Data{
+					Players:       []string{"x", "o"},
+					maximizerMark: "x",
+					streakToWin:   3,
+					cursorX:       0,
+					cursorY:       0,
+				},
+			},
+			expectedScore: -8,
+			expectedY:     0,
+			expectedX:     2,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
 				minimax := &Minimax{}
-				assert.Equal(
-					t,
-					tt.expected,
-					minimax.Minimax(tt.arguments.data),
-				)
+				score, y, x := minimax.Minimax(tt.arguments.data, tt.arguments.board, tt.arguments.depth)
+
+				assert.Equal(t, tt.expectedY, y, "y is not expected")
+				assert.Equal(t, tt.expectedX, x, "x is not expected")
+				assert.Equal(t, tt.expectedScore, score, "score is not expected")
 			},
 		)
 	}

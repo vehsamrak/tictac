@@ -1,6 +1,8 @@
 package minimax
 
 import (
+	"math"
+
 	"github.com/vehsamrak/tictac/internal/tictac"
 )
 
@@ -11,86 +13,96 @@ const (
 )
 
 type Data struct {
-	currentMark string     // mark of current player
-	Players     []string   // players marks
-	board       [][]string // tic-tac-toe board
-	cursorY     int        // last move Y
-	cursorX     int        // last move X
-	streakToWin int        // streak of marks needed to win
-	depth       int        // depth of current node in minmax tree
+	maximizerMark string   // mark of current player
+	Players       []string // players marks
+	cursorY       int      // last move Y
+	cursorX       int      // last move X
+	streakToWin   int      // streak of marks needed to win
 }
 
 type Minimax struct{}
 
 // Minimax applies best move prediction algorithm to tictactoe board
-func (m *Minimax) Minimax(data Data) int {
+func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
+	// TODO[petr]: Remove this check
+	if depth == 10 {
+		panic("Maximum depth reached")
+	}
+
 	isGameOver := tictac.CheckGameOver(
-		data.board,
+		board,
 		data.cursorY,
 		data.cursorX,
 		data.streakToWin,
 	)
 
 	if isGameOver {
-		if data.board[data.cursorY][data.cursorX] == data.currentMark {
-			return scoreLose
+		if board[data.cursorY][data.cursorX] == data.maximizerMark {
+			return scoreWin - depth, data.cursorY, data.cursorX
 		}
 
-		return scoreWin
+		return scoreLose + depth, data.cursorY, data.cursorX
 	}
 
-	if tictac.IsFull(data.board) {
-		return scoreDraw
+	if tictac.IsFull(board) {
+		return scoreDraw, data.cursorY, data.cursorX
 	}
 
+	// switching players
+	currentMark := data.Players[0]
+	data.Players = data.Players[1:]
+	data.Players = append(data.Players, currentMark)
+
+	isMaximizer := data.maximizerMark == currentMark
 	var value int
-	emptyCells := tictac.GetEmptyCells(data.board)
+	if isMaximizer {
+		value = math.MinInt
+	} else {
+		value = math.MaxInt
+	}
+
+	var predictedY int
+	var predictedX int
+	emptyCells := tictac.GetEmptyCells(board)
 	for _, emptyCell := range emptyCells {
 		emptyCellY, emptyCellX := emptyCell[0], emptyCell[1]
 
-		predictedBoard := data.board
-		predictedBoard[emptyCellY][emptyCellX] = "x"
+		// copying board
+		predictedBoard := make([][]string, len(board))
+		for i := range board {
+			predictedBoard[i] = make([]string, len(board[i]))
+			copy(predictedBoard[i], board[i])
+		}
 
-		minimaxValue := m.Minimax(Data{
-			cursorY:     emptyCellY,
-			cursorX:     emptyCellX,
-			currentMark: data.currentMark,
-			streakToWin: data.streakToWin,
-			board:       predictedBoard,
-			depth:       data.depth + 1,
-		})
+		// populating copied board with prediction
+		predictedBoard[emptyCellY][emptyCellX] = currentMark
 
-		if minimaxValue < value {
-			value = minimaxValue + data.depth
+		minimaxValue, turnY, turnX := m.Minimax(
+			Data{
+				cursorY:       emptyCellY,
+				cursorX:       emptyCellX,
+				maximizerMark: data.maximizerMark,
+				streakToWin:   data.streakToWin,
+				Players:       data.Players,
+			},
+			predictedBoard,
+			depth+1,
+		)
+
+		if isMaximizer {
+			if minimaxValue > value {
+				value = minimaxValue
+				predictedY = turnY
+				predictedX = turnX
+			}
+		} else {
+			if minimaxValue < value {
+				value = minimaxValue
+				predictedY = turnY
+				predictedX = turnX
+			}
 		}
 	}
 
-	return value
-
-	// isGameOver := tictac.CheckGameOver(
-	// 	data.board,
-	// 	data.cursorY,
-	// 	data.cursorX,
-	// 	data.streakToWin,
-	// )
-	//
-	// if tictac.IsFull(data.board) {
-	// 	if isGameOver {
-	// 		if data.board[data.cursorY][data.cursorX] == data.currentMark {
-	// 			return 10
-	// 		}
-	//
-	// 		return -10
-	// 	}
-	//
-	// 	return 0
-	// }
-
-	// collect all empty cells
-	// calculate minimax for each
-	// invert mark
-	// add mark on board
-	// take max of each minimax and return
-
-	return 0
+	return value, predictedY, predictedX
 }
