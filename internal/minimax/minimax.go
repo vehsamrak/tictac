@@ -63,7 +63,7 @@ func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y 
 
 	var predictedY int
 	var predictedX int
-	emptyCells := tictac.GetEmptyCells(board)
+	emptyCells := tictac.EmptyCells(board)
 	for _, emptyCell := range emptyCells {
 		emptyCellY, emptyCellX := emptyCell[0], emptyCell[1]
 

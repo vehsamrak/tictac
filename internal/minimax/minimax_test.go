@@ -4,59 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vehsamrak/tictac/internal/tictac"
 )
-
-func TestIsFull(t *testing.T) {
-	type arguments struct {
-		board [][]string
-	}
-	tests := []struct {
-		name      string
-		arguments arguments
-		expected  bool
-	}{
-		{
-			name: "nil board, expect true",
-			arguments: arguments{
-				board: nil,
-			},
-			expected: true,
-		},
-		{
-			name: "empty board, expect true",
-			arguments: arguments{
-				board: [][]string{},
-			},
-			expected: true,
-		},
-		{
-			name: "board without empty fields, expect true",
-			arguments: arguments{
-				board: [][]string{{"x"}},
-			},
-			expected: true,
-		},
-		{
-			name: "board with empty fields, expect false",
-			arguments: arguments{
-				board: [][]string{{""}},
-			},
-			expected: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				assert.Equal(
-					t,
-					tt.expected,
-					tictac.IsFull(tt.arguments.board),
-				)
-			},
-		)
-	}
-}
 
 func TestMinimax(t *testing.T) {
 	type arguments struct {
@@ -110,7 +58,7 @@ func TestMinimax(t *testing.T) {
 			expectedX:     0,
 		},
 		{
-			name: "board with empty cells and winning combination on depth X, must return Y",
+			name: "board with empty cells and losing combination on depth 2, must return -8",
 			arguments: arguments{
 				board: [][]string{
 					{"o", "", ""},

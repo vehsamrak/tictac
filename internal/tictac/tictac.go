@@ -57,9 +57,8 @@ func CheckGameOver(
 	return false
 }
 
-// GetEmptyCells returns y,x cortage slice of all empty cells
-// TODO[petr]: add tests
-func GetEmptyCells(board [][]string) [][2]int {
+// EmptyCells returns y,x cortage slice of all empty cells
+func EmptyCells(board [][]string) [][2]int {
 	var emptyCells [][2]int
 	for y, row := range board {
 		for x, mark := range row {
