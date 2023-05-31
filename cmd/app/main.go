@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	streakToWin = 5
-	height      = 15
-	width       = 25
+	streakToWin = 3
+	height      = 3
+	width       = 3
 )
 
 func main() {

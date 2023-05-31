@@ -1,6 +1,7 @@
 package minimax
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/vehsamrak/tictac/internal/tictac"
@@ -25,8 +26,9 @@ type Minimax struct{}
 // Minimax applies best move prediction algorithm to tictactoe board
 func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
 	// TODO[petr]: Remove this check
-	if depth == 10 {
-		panic("Maximum depth reached")
+	if depth == 3 {
+		// panic("Maximum depth reached")
+		return 0, data.cursorY, data.cursorX
 	}
 
 	isGameOver := tictac.CheckGameOver(
@@ -103,6 +105,22 @@ func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y 
 			}
 		}
 	}
+
+	// TODO[petr]: remove this
+	fmt.Printf("================")
+	for _, row := range board {
+		fmt.Printf("\n")
+		for _, cell := range row {
+			if cell == "" {
+				cell = "."
+			}
+			fmt.Printf("%s ", cell)
+		}
+	}
+	fmt.Printf("\n")
+	fmt.Printf("depth: %#v\n", depth)
+	fmt.Printf("player: %#v\n", data.Players[0])
+	fmt.Printf("%#v\n", value)
 
 	return value, predictedY, predictedX
 }

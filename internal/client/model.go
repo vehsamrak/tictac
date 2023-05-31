@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/vehsamrak/tictac/internal/minimax"
 	"github.com/vehsamrak/tictac/internal/tictac"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,21 +13,21 @@ import (
 )
 
 type Player struct {
-	mark string
+	mark  string
+	isBot bool
 }
 
 type model struct {
-	messageDebug    string // string with any message to render in debug mode
-	message         string // game message to render
-	board           [][]string
-	players         []Player
-	debug           bool
-	gameOver        bool
-	turnsLeft       int
-	currentPlayerID int // id is player index
-	cursorX         int
-	cursorY         int
-	streakToWin     int // marks streak needed to win
+	messageDebug string // string with any message to render in debug mode
+	message      string // game message to render
+	board        [][]string
+	players      []Player // rotating slice of all players, first is those who's turn it is
+	debug        bool
+	gameOver     bool
+	turnsLeft    int
+	cursorX      int
+	cursorY      int
+	streakToWin  int // marks streak needed to win
 }
 
 func NewModel(height, width, streakToWin int) model {
@@ -35,10 +36,12 @@ func NewModel(height, width, streakToWin int) model {
 		board[y] = make([]string, width)
 	}
 
-	marks := []string{"X", "O"}
 	var usedColors []colorful.Color
-	var players []Player
-	for _, mark := range marks {
+	players := []Player{
+		{mark: "X"},
+		{mark: "O", isBot: true},
+	}
+	for i, player := range players {
 		// selecting different colors for each player
 		color := colorful.HappyColor()
 		for _, usedColor := range usedColors {
@@ -52,34 +55,30 @@ func NewModel(height, width, streakToWin int) model {
 
 		usedColors = append(usedColors, color)
 
-		players = append(players, Player{
-			mark: lipgloss.NewStyle().Bold(true).Foreground(
-				lipgloss.Color(color.Hex()),
-			).Render(mark),
-		})
+		players[i].mark = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color(color.Hex())).
+			Render(player.mark)
 	}
 
-	currentPlayerId := 0
-
 	return model{
-		board:           board,
-		cursorX:         width / 2,
-		cursorY:         height / 2,
-		players:         players,
-		currentPlayerID: currentPlayerId,
-		streakToWin:     streakToWin,
-		turnsLeft:       height * width,
+		board:       board,
+		cursorX:     width / 2,
+		cursorY:     height / 2,
+		players:     players,
+		streakToWin: streakToWin,
+		turnsLeft:   height * width,
 		message: fmt.Sprintf(
 			"New game started! Goal is to occupy %d in a row. Current turn: %s",
 			streakToWin,
-			players[currentPlayerId].mark,
+			players[0].mark,
 		),
 	}
 }
 
 func (m *model) nextTurn(y int, x int) {
 	if tictac.CheckGameOver(m.board, y, x, m.streakToWin) {
-		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[m.currentPlayerID].mark)
+		m.message = fmt.Sprintf("Game over. Winner is %s!", m.players[0].mark)
 		m.gameOver = true
 		return
 	}
@@ -91,13 +90,27 @@ func (m *model) nextTurn(y int, x int) {
 		return
 	}
 
-	if m.currentPlayerID == len(m.players)-1 {
-		m.currentPlayerID = 0
-	} else {
-		m.currentPlayerID++
-	}
+	// players rotate
+	m.players = append(m.players[1:], m.players[0])
 
-	m.message = fmt.Sprintf("Current turn: %s", m.players[m.currentPlayerID].mark)
+	m.message = fmt.Sprintf("Current turn: %s", m.players[0].mark)
+
+	if m.players[0].isBot {
+		var marks []string
+		for _, player := range m.players {
+			marks = append(marks, player.mark)
+		}
+
+		_, predictedY, predictedX := (&minimax.Minimax{}).Minimax(
+			minimax.Data{
+				Players: marks,
+			},
+			m.board,
+			0,
+		)
+
+		m.placeMark(predictedY, predictedX)
+	}
 }
 
 func (m model) Init() tea.Cmd {
@@ -129,10 +142,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			m.debug = !m.debug
 		case "enter", " ":
-			if m.board[m.cursorY][m.cursorX] == "" {
-				m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerID].mark
-				m.nextTurn(m.cursorY, m.cursorX)
-			}
+			// if m.board[m.cursorY][m.cursorX] == "" {
+			// 	m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerID].mark
+			// 	m.nextTurn(m.cursorY, m.cursorX)
+			// }
+
+			m.placeMark(m.cursorY, m.cursorX)
 
 			if m.gameOver {
 				return m, tea.Quit
@@ -194,10 +209,17 @@ func (m model) View() string {
 		result.WriteString(fmt.Sprintf("Debug message: %v\n", m.messageDebug))
 		result.WriteString(fmt.Sprintf("Turns left: %d\n", m.turnsLeft))
 		result.WriteString(fmt.Sprintf("Cursor X/Y: %d/%d\n", m.cursorX, m.cursorY))
-		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[m.currentPlayerID]))
+		result.WriteString(fmt.Sprintf("Player: %v\n", m.players[0]))
 	}
 
 	result.WriteString("\n\n")
 
 	return result.String()
+}
+
+func (m *model) placeMark(y int, x int) {
+	if m.board[y][x] == "" {
+		m.board[y][x] = m.players[0].mark
+		m.nextTurn(y, x)
+	}
 }
