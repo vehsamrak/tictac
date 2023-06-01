@@ -101,13 +101,19 @@ func (m *model) nextTurn(y int, x int) {
 			marks = append(marks, player.mark)
 		}
 
-		_, predictedY, predictedX := (&minimax.Minimax{}).Minimax(
+		prediction, predictedY, predictedX := minimax.Minimax{}.Minimax(
 			minimax.Data{
-				Players: marks,
+				Players:       marks,
+				CursorY:       m.cursorY,
+				CursorX:       m.cursorX,
+				MaximizerMark: m.players[0].mark,
+				StreakToWin:   m.streakToWin,
 			},
 			m.board,
 			0,
 		)
+
+		m.messageDebug = fmt.Sprintf("Prediction: %d", prediction)
 
 		m.placeMark(predictedY, predictedX)
 	}

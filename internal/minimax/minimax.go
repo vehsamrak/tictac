@@ -10,14 +10,15 @@ const (
 	scoreWin  = 10
 	scoreLose = -10
 	scoreDraw = 0
+	maxDepth  = 20
 )
 
 type Data struct {
-	maximizerMark string   // mark of current player
+	MaximizerMark string   // mark of current player
 	Players       []string // players marks
-	cursorY       int      // last move Y
-	cursorX       int      // last move X
-	streakToWin   int      // streak of marks needed to win
+	CursorY       int      // last move Y
+	CursorX       int      // last move X
+	StreakToWin   int      // streak of marks needed to win
 }
 
 type Minimax struct{}
@@ -26,32 +27,30 @@ type Minimax struct{}
 func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
 	isGameOver := tictac.CheckGameOver(
 		board,
-		data.cursorY,
-		data.cursorX,
-		data.streakToWin,
+		data.CursorY,
+		data.CursorX,
+		data.StreakToWin,
 	)
 
 	if isGameOver {
-		if board[data.cursorY][data.cursorX] == data.maximizerMark {
-			return scoreWin - depth, data.cursorY, data.cursorX
+		if board[data.CursorY][data.CursorX] == data.MaximizerMark {
+			return scoreWin - depth, data.CursorY, data.CursorX
 		}
 
-		return scoreLose + depth, data.cursorY, data.cursorX
+		return scoreLose + depth, data.CursorY, data.CursorX
 	}
 
 	if tictac.IsFull(board) {
-		return scoreDraw, data.cursorY, data.cursorX
+		return scoreDraw, data.CursorY, data.CursorX
 	}
 
-	// TODO[petr]: Remove this check
-	if depth == 2 {
-		// panic("Maximum depth reached")
-		return 0, data.cursorY, data.cursorX
+	if depth == maxDepth {
+		return 0, data.CursorY, data.CursorX
 	}
 
 	currentMark := data.Players[0]
 
-	isMaximizer := data.maximizerMark == currentMark
+	isMaximizer := data.MaximizerMark == currentMark
 	var value int
 	if isMaximizer {
 		value = math.MinInt
@@ -77,10 +76,10 @@ func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y i
 
 		minimaxValue, _, _ := m.Minimax(
 			Data{
-				cursorY:       emptyCellY,
-				cursorX:       emptyCellX,
-				maximizerMark: data.maximizerMark,
-				streakToWin:   data.streakToWin,
+				CursorY:       emptyCellY,
+				CursorX:       emptyCellX,
+				MaximizerMark: data.MaximizerMark,
+				StreakToWin:   data.StreakToWin,
 				// switching players
 				Players: append(data.Players[1:], currentMark),
 			},
