@@ -2,6 +2,7 @@ package minimax
 
 import (
 	"math"
+	"sort"
 
 	"github.com/vehsamrak/tictac/internal/tictac"
 )
@@ -21,10 +22,22 @@ type Data struct {
 	StreakToWin   int      // streak of marks needed to win
 }
 
-type Minimax struct{}
+type prediction struct {
+	value int
+	y     int
+	x     int
+}
+
+type Minimax struct {
+	SortResult bool // sort result prediction to be determined, useful for tests
+}
 
 // Minimax applies best move prediction algorithm to tictactoe board
-func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
+func (m Minimax) Minimax(
+	data Data,
+	board [][]string,
+	depth int,
+) (score int, y int, x int) {
 	isGameOver := tictac.CheckGameOver(
 		board,
 		data.CursorY,
@@ -50,17 +63,8 @@ func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y i
 
 	currentMark := data.Players[0]
 
-	isMaximizer := data.MaximizerMark == currentMark
-	var value int
-	if isMaximizer {
-		value = math.MinInt
-	} else {
-		value = math.MaxInt
-	}
-
-	var predictedY int
-	var predictedX int
 	emptyCells := tictac.EmptyCells(board)
+	values := make(chan prediction)
 	for _, emptyCell := range emptyCells {
 		emptyCellY, emptyCellX := emptyCell[0], emptyCell[1]
 
@@ -74,30 +78,68 @@ func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y i
 		// populating copied board with prediction
 		predictedBoard[emptyCellY][emptyCellX] = currentMark
 
-		minimaxValue, _, _ := m.Minimax(
-			Data{
-				CursorY:       emptyCellY,
-				CursorX:       emptyCellX,
-				MaximizerMark: data.MaximizerMark,
-				StreakToWin:   data.StreakToWin,
-				// switching players
-				Players: append(data.Players[1:], currentMark),
-			},
-			predictedBoard,
-			depth+1,
-		)
+		go func() {
+			minimaxValue, _, _ := m.Minimax(
+				Data{
+					CursorY:       emptyCellY,
+					CursorX:       emptyCellX,
+					MaximizerMark: data.MaximizerMark,
+					StreakToWin:   data.StreakToWin,
+					// switching players
+					Players: append(data.Players[1:], currentMark),
+				},
+				predictedBoard,
+				depth+1,
+			)
 
+			values <- prediction{value: minimaxValue, y: emptyCellY, x: emptyCellX}
+		}()
+	}
+
+	emptyCellsCount := len(emptyCells)
+
+	var predictions []prediction
+	for prediction := range values {
+		predictions = append(predictions, prediction)
+
+		emptyCellsCount--
+		if emptyCellsCount == 0 {
+			break
+		}
+	}
+
+	if m.SortResult {
+		sort.SliceStable(predictions, func(i, j int) bool {
+			return predictions[i].y < predictions[j].y
+		})
+		sort.SliceStable(predictions, func(i, j int) bool {
+			return predictions[i].x < predictions[j].x
+		})
+	}
+
+	isMaximizer := data.MaximizerMark == currentMark
+
+	var value int
+	if isMaximizer {
+		value = math.MinInt
+	} else {
+		value = math.MaxInt
+	}
+
+	var predictedY int
+	var predictedX int
+	for _, prediction := range predictions {
 		if isMaximizer {
-			if minimaxValue > value {
-				value = minimaxValue
-				predictedY = emptyCellY
-				predictedX = emptyCellX
+			if prediction.value > value {
+				value = prediction.value
+				predictedY = prediction.y
+				predictedX = prediction.x
 			}
 		} else {
-			if minimaxValue < value {
-				value = minimaxValue
-				predictedY = emptyCellY
-				predictedX = emptyCellX
+			if prediction.value < value {
+				value = prediction.value
+				predictedY = prediction.y
+				predictedX = prediction.x
 			}
 		}
 	}

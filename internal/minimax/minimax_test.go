@@ -74,8 +74,8 @@ func TestMinimax(t *testing.T) {
 				},
 			},
 			expectedScore: -8,
-			expectedY:     0,
-			expectedX:     1,
+			expectedY:     1,
+			expectedX:     0,
 		},
 		{
 			name: "board with empty cells more then calculating depth, must return draw prediction",
@@ -121,7 +121,12 @@ func TestMinimax(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				score, y, x := Minimax{}.Minimax(tt.arguments.data, tt.arguments.board, tt.arguments.depth)
+				score, y, x := Minimax{SortResult: true}.
+					Minimax(
+						tt.arguments.data,
+						tt.arguments.board,
+						tt.arguments.depth,
+					)
 
 				assert.Equal(t, tt.expectedY, y, "y is not expected")
 				assert.Equal(t, tt.expectedX, x, "x is not expected")
