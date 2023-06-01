@@ -10,7 +10,7 @@ const (
 	scoreWin  = 10
 	scoreLose = -10
 	scoreDraw = 0
-	maxDepth  = 20
+	maxDepth  = 10
 )
 
 type Data struct {

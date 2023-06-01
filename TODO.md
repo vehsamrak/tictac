@@ -1,5 +1,8 @@
-# Todo
+# Done
 1. Minimax
+
+# Todo
+1. Concurrent minimax processing
 1. Input players number
 1. Client-server
 1. Count wins and prolong game after wins

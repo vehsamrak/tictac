@@ -148,11 +148,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "d":
 			m.debug = !m.debug
 		case "enter", " ":
-			// if m.board[m.cursorY][m.cursorX] == "" {
-			// 	m.board[m.cursorY][m.cursorX] = m.players[m.currentPlayerID].mark
-			// 	m.nextTurn(m.cursorY, m.cursorX)
-			// }
-
 			m.placeMark(m.cursorY, m.cursorX)
 
 			if m.gameOver {
