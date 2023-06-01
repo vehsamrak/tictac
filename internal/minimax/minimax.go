@@ -1,7 +1,6 @@
 package minimax
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/vehsamrak/tictac/internal/tictac"
@@ -24,13 +23,7 @@ type Data struct {
 type Minimax struct{}
 
 // Minimax applies best move prediction algorithm to tictactoe board
-func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
-	// TODO[petr]: Remove this check
-	if depth == 3 {
-		// panic("Maximum depth reached")
-		return 0, data.cursorY, data.cursorX
-	}
-
+func (m Minimax) Minimax(data Data, board [][]string, depth int) (score int, y int, x int) {
 	isGameOver := tictac.CheckGameOver(
 		board,
 		data.cursorY,
@@ -50,10 +43,13 @@ func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y 
 		return scoreDraw, data.cursorY, data.cursorX
 	}
 
-	// switching players
+	// TODO[petr]: Remove this check
+	if depth == 2 {
+		// panic("Maximum depth reached")
+		return 0, data.cursorY, data.cursorX
+	}
+
 	currentMark := data.Players[0]
-	data.Players = data.Players[1:]
-	data.Players = append(data.Players, currentMark)
 
 	isMaximizer := data.maximizerMark == currentMark
 	var value int
@@ -79,13 +75,14 @@ func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y 
 		// populating copied board with prediction
 		predictedBoard[emptyCellY][emptyCellX] = currentMark
 
-		minimaxValue, turnY, turnX := m.Minimax(
+		minimaxValue, _, _ := m.Minimax(
 			Data{
 				cursorY:       emptyCellY,
 				cursorX:       emptyCellX,
 				maximizerMark: data.maximizerMark,
 				streakToWin:   data.streakToWin,
-				Players:       data.Players,
+				// switching players
+				Players: append(data.Players[1:], currentMark),
 			},
 			predictedBoard,
 			depth+1,
@@ -94,33 +91,17 @@ func (m *Minimax) Minimax(data Data, board [][]string, depth int) (score int, y 
 		if isMaximizer {
 			if minimaxValue > value {
 				value = minimaxValue
-				predictedY = turnY
-				predictedX = turnX
+				predictedY = emptyCellY
+				predictedX = emptyCellX
 			}
 		} else {
 			if minimaxValue < value {
 				value = minimaxValue
-				predictedY = turnY
-				predictedX = turnX
+				predictedY = emptyCellY
+				predictedX = emptyCellX
 			}
 		}
 	}
-
-	// TODO[petr]: remove this
-	fmt.Printf("================")
-	for _, row := range board {
-		fmt.Printf("\n")
-		for _, cell := range row {
-			if cell == "" {
-				cell = "."
-			}
-			fmt.Printf("%s ", cell)
-		}
-	}
-	fmt.Printf("\n")
-	fmt.Printf("depth: %#v\n", depth)
-	fmt.Printf("player: %#v\n", data.Players[0])
-	fmt.Printf("%#v\n", value)
 
 	return value, predictedY, predictedX
 }
